@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>달에 소원빌기 - SCCMC2309</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <link rel="stylesheet" href="../static/scc-style-sheet.css">
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="item-between">
+            <h2>보름달에 소원 보내기</h2>
+            <div class="item-center">
+                <div>풍성한 한가위, 내 마음을 담아 보름달에 소원을 빌어보세요</div>
+                <div>달님이 내가 보낸 소원의 편지를 받아주실 거에요 :)</div>
+            </div>
+            <div class="change-img"></div>
+            <div class="moon">
+                <div class="front"></div>
+                <div class="back"></div>
+            </div>
+            <div id="msg-form" class="item-row">
+                <input type="text" class="submit-input" placeholder="소원을 달에 보내주세요" required>
+                <!-- "제출하기" 버튼에 클릭 이벤트 핸들러 연결 -->
+                <button id="submit-btn" class="submit-btn" onclick="sendMessage()">제출하기</button>
+            </div>
+        </div>
+    </div>
+    <div class="letter"></div>
+    
+    <script src="https://code.jquery.com/jquery-3.7.0.js"
+        integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            $(".letter").hide();
+        });
+
+        function messageAnimation() {
+            // 버튼 비활성화
+            $("#submit-btn").prop("disabled", true);
+            $("#submit-btn").css("background-color", "gray")
+
+
+            // 편지를 달로 보내는 애니메이션
+            $(".letter").fadeIn(1000, function () {
+                $(".letter").addClass("parabola");
+                setTimeout(function () {
+                    $(".letter").fadeOut(1000, function () {
+                        // 애니메이션이 완료되면 .back을 보이게 하고 다음 애니메이션 수행
+                        $(".back").fadeIn(300, function () {
+                            setTimeout(function () {
+                                $(".back").fadeOut(300, function () {
+                                    // 애니메이션이 완료되면 버튼 다시 활성화
+                                    $("#submit-btn").prop("disabled", false);
+                                    $("#submit-btn").css("background-color", "#13275A");
+                                });
+                            }, 1000);
+                        });
+                    });
+                }, 100);
+            });
+        };
+
+        function sendMsgApi(message) {
+            const formData = new FormData()
+            formData.append("message", message)
+            // fetch('http://127.0.0.1:8080/api/message', {
+            //     method : "POST",
+            //     body : formData
+            // }).then(res => res.json()).then(data => {
+            //     console.log(data)
+            // })
+        }
+        function sendMessage() {
+            const message = $(".submit-input").val();
+            if (message === "") {
+                alert("빈 칸을 채워주세요!");
+                return;
+            }
+            messageAnimation();
+            sendMsgApi(message)
+        }
+    </script>
+</body>
+
+</html>
