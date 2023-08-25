@@ -69,7 +69,7 @@
         function sendMsgApi(message) {
             // const formData = new FormData()
             // formData.append("message", message)
-            const socket = io.connect('http://127.0.0.1:8080');
+            const socket = io.connect('https://port-0-moonwish-5llo2alhecwnmv.sel4.cloudtype.app/');
             
             socket.emit('make_wish', { wish: message });
         }
