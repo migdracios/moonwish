@@ -2,14 +2,19 @@ from flask import Flask, request, redirect, render_template, jsonify, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
+
+app.config['CORS_ALLOW_HEADERS'] = 'Content-Type'
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///moonwish.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 WISH_LIST = []
 
@@ -22,29 +27,37 @@ if not os.path.exists('moonwish.db'):
     with app.app_context():
         db.create_all()
 
-@app.route('/api/message', methods=['POST'])
-def save_message():
-    if request.method == 'POST':
-        message_text = request.form.get('message')
-        if message_text:
-            new_message = Messages(message=message_text)
-            WISH_LIST.append(new_message)
-            db.session.add(new_message)
-            db.session.commit()
-            return redirect(url_for('get_messages'))
-        return 'Message is missing!', 400
+# @app.route('/api/message', methods=['POST'])
+# def save_message():
+#     if request.method == 'POST':
+#         message_text = request.form.get('message')
+#         if message_text:
+#             new_message = Messages(message=message_text)
+#             WISH_LIST.append(new_message)
+#             db.session.add(new_message)
+#             db.session.commit()
+#             return redirect(url_for('get_messages'))
+#         return 'Message is missing!', 400
 
-@app.route('/api/message', methods=['GET'])
-def get_messages():
-    if request.method == 'GET':
-        oldesst_message = WISH_LIST.pop(0)
-        messages_data = {'id': oldesst_message.id, 'message': oldesst_message.message}
+# @app.route('/api/message', methods=['GET'])
+# def get_messages():
+#     if request.method == 'GET':
+#         oldesst_message = WISH_LIST.pop(0)
+#         messages_data = {'id': oldesst_message.id, 'message': oldesst_message.message}
         
-        return jsonify(messages_data)
+#         return jsonify(messages_data)
 
 @app.route('/')
 def deploy_page():
     return render_template('deploy.html')
+
+@socketio.on('make_wish')
+def make_wish(message):
+    wish = message['wish']
+    WISH_LIST.append(wish)
+    
+    emit('wish_added', {'wish': wish}, broadcast=True)
+    # print(f'Save My Wish --> {wish}')
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)
